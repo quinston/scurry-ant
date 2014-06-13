@@ -11,6 +11,9 @@ void setup() {
   Serial.begin(9600);
   
   
+  pinMode(sonic5V, OUTPUT);
+  
+  pinMode(sonicGnd, OUTPUT);
 }
 
 int timeToCm(int t) {
@@ -22,14 +25,11 @@ int timeToCm(int t) {
 int echolocate() {
   
   /* Power the pins */
-  pinMode(sonic5V, OUTPUT);
   digitalWrite(sonic5V, HIGH);
-  pinMode(sonicGnd, OUTPUT);
   digitalWrite(sonicGnd, LOW);
   
   
   /* Do some location */
-  pinMode(sonicTrig , OUTPUT);
   digitalWrite(sonicTrig, LOW);
   delay(25);
   digitalWrite(sonicTrig, HIGH);
