@@ -1,13 +1,16 @@
 const int photoresistor = 1;
 int lastReading = 0;
-/* Readings above this mean the light sensor 
- is not obscured enough*/
-int darknessCeiling = 0;
+/* Readings below this mean that the robot should react*/
+int reactionCeiling = 0;
 
+/* Sonic sensor pins */
+int sonicTrig = 2, sonicGnd = 3, sonic5V = 4;
 
 void setup() {
   pinMode(photoresistor, INPUT);
   Serial.begin(9600);
+  
+  
 }
 
 int timeToCm(int t) {
@@ -17,27 +20,32 @@ int timeToCm(int t) {
 
 /* Returns distance of remote obstacle in cm */
 int echolocate() {
-  int trig = 2, gnd = 3, fiveV = 4;
   
   /* Power the pins */
-  pinMode(fiveV, OUTPUT);
-  digitalWrite(fiveV, HIGH);
-  pinMode(gnd, OUTPUT);
-  digitalWrite(gnd, LOW);
+  pinMode(sonic5V, OUTPUT);
+  digitalWrite(sonic5V, HIGH);
+  pinMode(sonicGnd, OUTPUT);
+  digitalWrite(sonicGnd, LOW);
   
   
   /* Do some location */
-  
-  
-  pinMode(trig , OUTPUT);
-  digitalWrite(trig, LOW);
+  pinMode(sonicTrig , OUTPUT);
+  digitalWrite(sonicTrig, LOW);
   delay(25);
-  digitalWrite(trig, HIGH);
+  digitalWrite(sonicTrig, HIGH);
   int time = micros();
-  pinMode(trig, INPUT);
-  int pulseSize = pulseIn(trig, LOW, 18000); //expect 15us, timeout 18ms
+  pinMode(sonicTrig, INPUT);
+  int pulseSize = pulseIn(sonicTrig, LOW, 18000); //expect 15us, timeout 18ms
   time = micros() - time - pulseSize; // time since sending the pulse and receiving the whole pulse
   return timeToCm(time);  
+}
+
+void calibrate(int numSamples) {
+      int d = 0;
+      for (int i = 0; i  != numSamples; ++i) {
+        d += echolocate();
+      }
+      reactionCeiling = d / numSamples;
 }
 
 void loop() {
@@ -45,20 +53,15 @@ void loop() {
   int a  = echolocate();
   Serial.println(a);
 
-  if (a < darknessCeiling) {
-    Serial.println("darkness ceiling under");
+  if (a < reactionCeiling) {
+    Serial.println("ALERT!");
   }
 
   if (Serial.available()) {
     int c = Serial.read();
     /* Calibrate! */
     if (c == 'c') {
-      int numSamples = 10;
-      int d = 0;
-      for (int i = 0; i  != numSamples; ++i) {
-        d += analogRead(photoresistor);
-      }
-      darknessCeiling = d / numSamples;
+      calibrate(10, );
     }
   }
 
