@@ -17,6 +17,11 @@ void setup() {
   pinMode(sonic5V, OUTPUT);
   
   pinMode(sonicGnd, OUTPUT);
+  
+  pinMode(motorLR, OUTPUT);
+    pinMode(motorLB, OUTPUT);
+      pinMode(motorRR, OUTPUT);
+        pinMode(motorRB, OUTPUT);
 }
 
 int timeToCm(int t) {
