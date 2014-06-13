@@ -6,6 +6,9 @@ int reactionCeiling = 0;
 /* Sonic sensor pins */
 int sonicTrig = 2, sonicGnd = 3, sonic5V = 4;
 
+/* Motor pins */
+int motorLR = 8, motorLB = 9, motorRR = 10, motorRB = 11;
+
 void setup() {
   pinMode(photoresistor, INPUT);
   Serial.begin(9600);
@@ -46,6 +49,10 @@ void calibrate(int numSamples) {
         d += echolocate();
       }
       reactionCeiling = d / numSamples;
+}
+
+void scram(int ms) {
+  
 }
 
 void loop() {
