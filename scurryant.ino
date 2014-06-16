@@ -7,28 +7,24 @@ int reactionCeiling = 10;
 /* Ceiling aimed sonic sensor pins */
 int skySonicTrig = 3, skySonicGnd = 4, skySonic5V = 5;
 
+/* Front mounted sonic sensor pins */
+int frontSonicTrig = A5;
 
-/* Motor pins */
-int motorLR = 8, motorLB = 9, motorRR = 10, motorRB = 11;
+/* If this positive, power the motor forwards and decrement. If negative, backwards*/
+int motorBuffer = 0;
+int bufferChangeDelayMs = 1000;
+
 
 AF_DCMotor* wheelL, *wheelR;
 
 void setup() {
-  Serial.begin(9600);
-  
-  
   pinMode(skySonic5V, OUTPUT);
   pinMode(skySonicGnd, OUTPUT);
   pinMode(skySonicTrig, INPUT);
   
-  pinMode(motorLR, OUTPUT);
-    pinMode(motorLB, OUTPUT);
-      pinMode(motorRR, OUTPUT);
-        pinMode(motorRB, OUTPUT);
-  
   wheelL = new AF_DCMotor(2, MOTOR12_1KHZ);
   
-  wheelL->setSpeed(200);
+  wheelL->setSpeed(255);
   
 }
 
@@ -58,6 +54,19 @@ int echolocate() {
   return timeToCm(time);  
 }
 
+int frontEcholocate() {
+    pinMode(frontSonicTrig, OUTPUT);
+  digitalWrite(frontSonicTrig, LOW);
+  delay(25);
+  digitalWrite(frontSonicTrig, HIGH);
+  int time = micros();
+  pinMode(frontSonicTrig, INPUT);
+  int pulseSize = pulseIn(frontSonicTrig, LOW, 18000); //expect 15us, timeout 18ms
+  time = micros() - time - pulseSize; // time since sending the pulse and receiving the whole pulse
+  
+  return timeToCm(time);  
+}
+
 void calibrate(int numSamples) {
       int d = 0;
       for (int i = 0; i  != numSamples; ++i) {
@@ -66,30 +75,34 @@ void calibrate(int numSamples) {
       reactionCeiling = d / numSamples;
 }
 
-void scram(int ms) {
-  wheelL->run(FORWARD);
-  delay(ms);
-  wheelL->run(RELEASE);
-  
-}
 
 void loop() {
   int a  = echolocate();
-  Serial.println(a);
 
   if (a < reactionCeiling) {
-    Serial.println("ALERT!");
-    scram(1000);
+    
+    motorBuffer = 1;
   }
-
-  if (Serial.available()) {
-    int c = Serial.read();
-    /* Calibrate! */
-    if (c == 'c') {
-      calibrate(10);
-    }
+  
+    int b = frontEcholocate();
+  
+  boolean isRunForward = b>reactionCeiling;
+  
+  if (motorBuffer > 0 && !isRunForward) {
+   motorBuffer = -motorBuffer;
   }
-
-  delay(50);
+  
+  if (motorBuffer > 0) {
+    wheelL->run(FORWARD);
+    delay(bufferChangeDelayMs);
+    wheelL->run(RELEASE);
+    --motorBuffer;
+  }
+  else if (motorBuffer < 0) {
+    wheelL->run(BACKWARD);
+    delay(bufferChangeDelayMs);
+    wheelL->run(RELEASE);
+    ++motorBuffer;
+  }  
 }
 
