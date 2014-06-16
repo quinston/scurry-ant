@@ -14,6 +14,8 @@ int frontSonicTrig = A5;
 int motorBuffer = 0;
 int bufferChangeDelayMs = 1000;
 
+/* Sonic sensor pins */
+int sonicTrig = 2, sonicGnd = 3, sonic5V = 4;
 
 AF_DCMotor* wheelL, *wheelR;
 
@@ -25,7 +27,7 @@ void setup() {
   wheelL = new AF_DCMotor(2, MOTOR12_1KHZ);
   
   wheelL->setSpeed(255);
-  
+ 
 }
 
 int timeToCm(int t) {
@@ -37,6 +39,7 @@ int timeToCm(int t) {
 int echolocate() {
   
   /* Power the pins */
+
   digitalWrite(skySonic5V, HIGH);
   digitalWrite(skySonicGnd, LOW);
   
@@ -74,12 +77,11 @@ void calibrate(int numSamples) {
       }
       reactionCeiling = d / numSamples;
 }
-
-
 void loop() {
   int a  = echolocate();
 
   if (a < reactionCeiling) {
+
     
     motorBuffer = 1;
   }
@@ -90,6 +92,7 @@ void loop() {
   
   if (motorBuffer > 0 && !isRunForward) {
    motorBuffer = -motorBuffer;
+
   }
   
   if (motorBuffer > 0) {
