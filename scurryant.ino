@@ -2,10 +2,11 @@
 
 int lastReading = 0;
 /* Readings below this mean that the robot should react*/
-int reactionCeiling = 0;
+int reactionCeiling = 10;
 
-/* Sonic sensor pins */
-int sonicTrig = 3, sonicGnd = 4, sonic5V = 5;
+/* Ceiling aimed sonic sensor pins */
+int skySonicTrig = 3, skySonicGnd = 4, skySonic5V = 5;
+
 
 /* Motor pins */
 int motorLR = 8, motorLB = 9, motorRR = 10, motorRB = 11;
@@ -16,9 +17,9 @@ void setup() {
   Serial.begin(9600);
   
   
-  pinMode(sonic5V, OUTPUT);
-  pinMode(sonicGnd, OUTPUT);
-  pinMode(sonicTrig, INPUT);
+  pinMode(skySonic5V, OUTPUT);
+  pinMode(skySonicGnd, OUTPUT);
+  pinMode(skySonicTrig, INPUT);
   
   pinMode(motorLR, OUTPUT);
     pinMode(motorLB, OUTPUT);
@@ -40,18 +41,18 @@ int timeToCm(int t) {
 int echolocate() {
   
   /* Power the pins */
-  digitalWrite(sonic5V, HIGH);
-  digitalWrite(sonicGnd, LOW);
+  digitalWrite(skySonic5V, HIGH);
+  digitalWrite(skySonicGnd, LOW);
   
   
   /* Do some location */
-  pinMode(sonicTrig, OUTPUT);
-  digitalWrite(sonicTrig, LOW);
+  pinMode(skySonicTrig, OUTPUT);
+  digitalWrite(skySonicTrig, LOW);
   delay(25);
-  digitalWrite(sonicTrig, HIGH);
+  digitalWrite(skySonicTrig, HIGH);
   int time = micros();
-  pinMode(sonicTrig, INPUT);
-  int pulseSize = pulseIn(sonicTrig, LOW, 18000); //expect 15us, timeout 18ms
+  pinMode(skySonicTrig, INPUT);
+  int pulseSize = pulseIn(skySonicTrig, LOW, 18000); //expect 15us, timeout 18ms
   time = micros() - time - pulseSize; // time since sending the pulse and receiving the whole pulse
   
   return timeToCm(time);  
